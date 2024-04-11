@@ -2018,6 +2018,8 @@ static inline int __normal_prio(int policy, int rt_prio, int nice)
 		prio = MAX_DL_PRIO - 1;
 	else if (rt_policy(policy))
 		prio = MAX_RT_PRIO - 1 - rt_prio;
+	else if (mlq(policy))
+		prio = MAX_RT_PRIO - 1 + rt_prio;
 	else
 		prio = NICE_TO_PRIO(nice);
 
@@ -6706,6 +6708,8 @@ static void __setscheduler_prio(struct task_struct *p, int prio)
 		p->sched_class = &dl_sched_class;
 	else if (rt_prio(prio))
 		p->sched_class = &rt_sched_class;
+	else if (mlq_prio(prio))
+		p->sched_class = &mlq_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 
@@ -7189,6 +7193,7 @@ static void __setscheduler_params(struct task_struct *p,
 	 */
 	p->rt_priority = attr->sched_priority;
 	p->normal_prio = normal_prio(p);
+	p->mlq_priority = attr->sched_priority;
 	set_load_weight(p, true);
 }
 
@@ -7241,12 +7246,13 @@ recheck:
 	/*
 	 * Valid priorities for SCHED_FIFO and SCHED_RR are
 	 * 1..MAX_RT_PRIO-1, valid priority for SCHED_NORMAL,
-	 * SCHED_BATCH and SCHED_IDLE is 0.
+	 * SCHED_BATCH and SCHED_IDLE is 0, valid priority for SCHED_MLQ is 1..3.
 	 */
 	if (attr->sched_priority > MAX_RT_PRIO-1)
 		return -EINVAL;
 	if ((dl_policy(policy) && !__checkparam_dl(attr)) ||
-	    (rt_policy(policy) != (attr->sched_priority != 0)))
+	    (rt_policy(policy) != (attr->sched_priority != 0)) ||
+		(mlq_policy(policy) && (attr->sched_priority <= 0 || attr->sched_priority > 3)))
 		return -EINVAL;
 
 	/*
@@ -7343,6 +7349,8 @@ recheck:
 	 */
 	if (unlikely(policy == p->policy)) {
 		if (fair_policy(policy) && attr->sched_nice != task_nice(p))
+			goto change;
+		if (mlq_policy(policy) && attr->sched_priority != p->mlq_priority)
 			goto change;
 		if (rt_policy(policy) && attr->sched_priority != p->rt_priority)
 			goto change;
@@ -7798,6 +7806,8 @@ SYSCALL_DEFINE2(sched_getparam, pid_t, pid, struct sched_param __user *, param)
 
 	if (task_has_rt_policy(p))
 		lp.sched_priority = p->rt_priority;
+	else if (task_has_mlq_policy(p))
+		lp.sched_priority = p->mlq_priority;
 	rcu_read_unlock();
 
 	/*
@@ -8408,6 +8418,9 @@ SYSCALL_DEFINE1(sched_get_priority_max, int, policy)
 	case SCHED_RR:
 		ret = MAX_RT_PRIO-1;
 		break;
+	case SCHED_MLQ:
+		ret = MLQ_WIDTH;
+		break;
 	case SCHED_DEADLINE:
 	case SCHED_NORMAL:
 	case SCHED_BATCH:
@@ -8433,6 +8446,7 @@ SYSCALL_DEFINE1(sched_get_priority_min, int, policy)
 	switch (policy) {
 	case SCHED_FIFO:
 	case SCHED_RR:
+	case SCHED_MLQ:
 		ret = 1;
 		break;
 	case SCHED_DEADLINE:

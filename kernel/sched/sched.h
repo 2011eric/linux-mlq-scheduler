@@ -22,6 +22,7 @@
 #include <linux/sched/numa_balancing.h>
 #include <linux/sched/prio.h>
 #include <linux/sched/rt.h>
+#include <linux/sched/mlq.h>
 #include <linux/sched/signal.h>
 #include <linux/sched/smt.h>
 #include <linux/sched/stat.h>
@@ -167,7 +168,10 @@ static inline int fair_policy(int policy)
 {
 	return policy == SCHED_NORMAL || policy == SCHED_BATCH;
 }
-
+static inline int mlq_policy(int policy)
+{
+	return policy == SCHED_MLQ;
+}
 static inline int rt_policy(int policy)
 {
 	return policy == SCHED_FIFO || policy == SCHED_RR;
@@ -187,7 +191,10 @@ static inline int task_has_idle_policy(struct task_struct *p)
 {
 	return idle_policy(p->policy);
 }
-
+static inline int task_has_mlq_policy(struct task_struct *p)
+{
+	return mlq_policy(p->policy);
+}
 static inline int task_has_rt_policy(struct task_struct *p)
 {
 	return rt_policy(p->policy);
@@ -2215,6 +2222,7 @@ extern struct sched_class __end_sched_classes[];
 extern const struct sched_class stop_sched_class;
 extern const struct sched_class dl_sched_class;
 extern const struct sched_class rt_sched_class;
+extern const struct sched_class mlq_sched_class;
 extern const struct sched_class fair_sched_class;
 extern const struct sched_class idle_sched_class;
 

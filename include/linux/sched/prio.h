@@ -6,6 +6,7 @@
 #define MIN_NICE	-20
 #define NICE_WIDTH	(MAX_NICE - MIN_NICE + 1)
 
+#define MLQ_WIDTH 3
 /*
  * Priority of a process goes from 0..MAX_PRIO-1, valid RT
  * priority is 0..MAX_RT_PRIO-1, and SCHED_NORMAL/SCHED_BATCH
@@ -15,8 +16,8 @@
 
 #define MAX_RT_PRIO		100
 
-#define MAX_PRIO		(MAX_RT_PRIO + NICE_WIDTH)
-#define DEFAULT_PRIO		(MAX_RT_PRIO + NICE_WIDTH / 2)
+#define MAX_PRIO		(MAX_RT_PRIO + MLQ_WIDTH + NICE_WIDTH)
+#define DEFAULT_PRIO		(MAX_RT_PRIO + MLQ_WIDTH + NICE_WIDTH / 2)
 
 /*
  * Convert user-nice values [ -20 ... 0 ... 19 ]
