@@ -201,6 +201,43 @@ static void task_tick_mlq(struct rq *rq, struct task_struct *p, int queued)
         resched_curr(rq);
     }
 }
+
+static unsigned int get_rr_interval_mlq(struct rq *rq, struct task_struct *task)
+{
+    if (task->mlq_priority == 1)
+        return MLQ_FIRST_TIMESLICE;
+    else if (task->mlq_priority == 2)
+        return MLQ_SECOND_TIMESLICE;
+    else
+        return 0;
+}
+
+static void
+prio_changed_mlq(struct rq *rq, struct task_struct *p, int oldprio)
+{
+    struct sched_mlq_entity *mlq_se = &p->mlq;
+
+    if (mlq_se->on_rq)
+    {
+        dequeue_mlq_entity(mlq_se);
+        enqueue_mlq_entity(mlq_se);
+    }
+    if (task_current(rq, p)){
+        if (p->prio > oldprio)
+            resched_curr(rq);
+    } else {
+        if (p->prio < rq->curr->prio)
+            resched_curr(rq);
+    }
+
+}
+
+static void switched_to_mlq(struct rq *rq, struct task_struct *p)
+{
+    if (task_on_rq_queued(p) && p->prio < rq->curr->prio)
+        resched_curr(rq);
+}
+
 void init_mlq_rq(struct mlq_rq *mlq_rq)
 {
     for (int i = 0; i < MLQ_WIDTH; i++)
@@ -232,10 +269,10 @@ DEFINE_SCHED_CLASS(mlq) = {
 
 	.task_tick		= task_tick_mlq,
 
-	.get_rr_interval	= get_rr_interval_rt,
+	.get_rr_interval	= get_rr_interval_mlq,
 
-	.prio_changed		= prio_changed_rt,
-	.switched_to		= switched_to_rt,
+	.prio_changed		= prio_changed_mlq,
+	.switched_to		= switched_to_mlq,
 
 	.update_curr		= update_curr_mlq,
 
