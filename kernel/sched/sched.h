@@ -184,7 +184,7 @@ static inline int dl_policy(int policy)
 static inline bool valid_policy(int policy)
 {
 	return idle_policy(policy) || fair_policy(policy) ||
-		rt_policy(policy) || dl_policy(policy);
+		rt_policy(policy) || dl_policy(policy) || mlq_policy(policy);
 }
 
 static inline int task_has_idle_policy(struct task_struct *p)
@@ -254,6 +254,7 @@ dl_entity_preempt(struct sched_dl_entity *a, struct sched_dl_entity *b)
 	return dl_entity_is_special(a) ||
 	       dl_time_before(a->deadline, b->deadline);
 }
+
 
 /*
  * This is the priority-queue data structure of the RT scheduling class:
@@ -640,6 +641,10 @@ static inline int rt_bandwidth_enabled(void)
 # define HAVE_RT_PUSH_IPI
 #endif
 
+extern void __setparam_mlq(struct task_struct *p, const struct sched_attr *attr);
+struct mlq_rq {
+	struct list_head queues[3];
+};
 /* Real-Time classes' related field in a runqueue: */
 struct rt_rq {
 	struct rt_prio_array	active;
@@ -963,6 +968,7 @@ struct rq {
 #endif
 
 	struct cfs_rq		cfs;
+	struct mlq_rq       mlq;
 	struct rt_rq		rt;
 	struct dl_rq		dl;
 

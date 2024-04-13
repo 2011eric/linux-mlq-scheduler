@@ -12,6 +12,7 @@ static inline int rt_prio(int prio)
 	return 0;
 }
 
-
+#define MLQ_FIRST_TIMESLICE   (50 * HZ / 1000)
+#define MLQ_SECOND_TIMESLICE   (100* HZ / 1000)
 
 #endif
