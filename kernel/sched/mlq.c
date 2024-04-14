@@ -225,7 +225,8 @@ static void switched_to_mlq(struct rq *rq, struct task_struct *p)
 static int
 balance_mlq(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
-    for (int i = 0; i < MLQ_WIDTH; i++){
+    int i;
+    for (i = 0; i < MLQ_WIDTH; i++){
         if (!list_empty(&rq->mlq.queues[i]))
             return 1;
     }
