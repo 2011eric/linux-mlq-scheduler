@@ -126,7 +126,7 @@ static struct sched_mlq_entity *pick_next_entity_mlq(struct list_head *queue)
     if (list_empty(queue))
         return NULL;
     
-    return list_first_entry(queue->next, struct sched_mlq_entity, run_list);
+    return list_first_entry(queue, struct sched_mlq_entity, run_list);
 }
 
 static struct task_struct *pick_task_mlq(struct rq *rq)
