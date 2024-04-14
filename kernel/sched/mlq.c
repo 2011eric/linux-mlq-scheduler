@@ -235,12 +235,32 @@ balance_mlq(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
     //TODO: try to do some balancing
     return 0;
 }
+
+static int
+select_task_rq_mlq(struct task_struct *p, int cpu, int flags)
+{
+    //TODO: implement this
+    return cpu;
+}
 void init_mlq_rq(struct mlq_rq *mlq_rq)
 {
     int i;
     for (i = 0; i < MLQ_WIDTH; i++)
         INIT_LIST_HEAD(&mlq_rq->queues[i]);
 }
+
+/* Assumes rq->lock is held */
+static void rq_online_mlq(struct rq *rq)
+{
+	cpupri_set(&rq->rd->cpupri, rq->cpu, CPUPRI_NORMAL);
+}
+
+/* Assumes rq->lock is held */
+static void rq_offline_mlq(struct rq *rq)
+{
+	cpupri_set(&rq->rd->cpupri, rq->cpu, CPUPRI_INVALID);
+}
+
 DEFINE_SCHED_CLASS(mlq) = {
 
 	.enqueue_task		= enqueue_task_mlq,
@@ -256,10 +276,10 @@ DEFINE_SCHED_CLASS(mlq) = {
 #ifdef CONFIG_SMP
 	.balance		= balance_mlq,
 	.pick_task		= pick_task_mlq,
-	.select_task_rq		= select_task_rq_rt,
+	.select_task_rq		= select_task_rq_mlq,
 	.set_cpus_allowed       = set_cpus_allowed_common,
-	.rq_online              = rq_online_rt,
-	.rq_offline             = rq_offline_rt,
+	.rq_online              = rq_online_mlq,
+	.rq_offline             = rq_offline_mlq,
 	.task_woken		= task_woken_rt,
 	.switched_from		= switched_from_rt,
 	.find_lock_rq		= find_lock_lowest_rq,
