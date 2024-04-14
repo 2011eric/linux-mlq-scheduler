@@ -47,7 +47,6 @@ static void update_curr_mlq(struct rq *rq)
 {
     struct task_struct *curr = rq->curr;
     struct sched_mlq_entity *mlq_se = &curr->mlq;
-    struct mlq_rq *mlq_rq = mlq_rq_of_se(mlq_se);
     u64 delta_exec;
     u64 now;
 
@@ -124,8 +123,6 @@ static void set_next_task_mlq(struct rq *rq, struct task_struct *p, bool first)
 
 static struct sched_mlq_entity *pick_next_entity_mlq(struct list_head *queue)
 {
-    struct sched_mlq_entity *mlq_se;
-
     if (list_empty(queue))
         return NULL;
     
@@ -287,7 +284,7 @@ DEFINE_SCHED_CLASS(mlq) = {
 	.rq_online              = rq_online_mlq,
 	.rq_offline             = rq_offline_mlq,
 	.switched_from		= switched_from_rt,
-#endif */
+#endif 
 
 	.task_tick		= task_tick_mlq,
 
