@@ -2010,7 +2010,7 @@ void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 	dequeue_task(rq, p, flags);
 }
 
-static inline int __normal_prio(int policy, int rt_prio, int nice)
+static inline int __normal_prio(int policy, int rt_prio, int mlq_prio, int nice)
 {
 	int prio;
 
@@ -2019,7 +2019,7 @@ static inline int __normal_prio(int policy, int rt_prio, int nice)
 	else if (rt_policy(policy))
 		prio = MAX_RT_PRIO - 1 - rt_prio;
 	else if (mlq_policy(policy))
-		prio = MAX_RT_PRIO - 1 + rt_prio;
+		prio = MAX_RT_PRIO - 1 + mlq_prio;
 	else
 		prio = NICE_TO_PRIO(nice);
 
@@ -2035,7 +2035,7 @@ static inline int __normal_prio(int policy, int rt_prio, int nice)
  */
 static inline int normal_prio(struct task_struct *p)
 {
-	return __normal_prio(p->policy, p->rt_priority, PRIO_TO_NICE(p->static_prio));
+	return __normal_prio(p->policy, p->rt_priority, p->mlq_priority ,PRIO_TO_NICE(p->static_prio));
 }
 
 /*
@@ -7193,9 +7193,11 @@ static void __setscheduler_params(struct task_struct *p,
 	 * !rt_policy. Always setting this ensures that things like
 	 * getparam()/getattr() don't report silly values for !rt tasks.
 	 */
-	p->rt_priority = attr->sched_priority;
+	if (!mlq_policy(policy))
+		p->rt_priority = attr->sched_priority;
+	else
+		p->mlq_priority = attr->sched_priority;
 	p->normal_prio = normal_prio(p);
-	p->mlq_priority = attr->sched_priority;
 	set_load_weight(p, true);
 }
 
@@ -7253,7 +7255,7 @@ recheck:
 	if (attr->sched_priority > MAX_RT_PRIO-1)
 		return -EINVAL;
 	if ((dl_policy(policy) && !__checkparam_dl(attr)) ||
-	    (rt_policy(policy) != (attr->sched_priority != 0)) ||
+	    ((rt_policy(policy) != (attr->sched_priority != 0)) && !mlq_policy(policy)) ||
 		(mlq_policy(policy) && (attr->sched_priority <= 0 || attr->sched_priority > 3)))
 		return -EINVAL;
 
@@ -7421,7 +7423,7 @@ change:
 	p->sched_reset_on_fork = reset_on_fork;
 	oldprio = p->prio;
 
-	newprio = __normal_prio(policy, attr->sched_priority, attr->sched_nice);
+	newprio = __normal_prio(policy, attr->sched_priority, attr->sched_priority ,attr->sched_nice);
 	if (pi) {
 		/*
 		 * Take priority boosted tasks into account. If the new
@@ -9304,7 +9306,8 @@ void __init sched_init(void)
 
 	/* Make sure the linker didn't screw up */
 	BUG_ON(&idle_sched_class + 1 != &fair_sched_class ||
-	       &fair_sched_class + 1 != &rt_sched_class ||
+	       &fair_sched_class + 1 != &mlq_sched_class ||
+		   &mlq_sched_class + 1 != &rt_sched_class ||
 	       &rt_sched_class + 1   != &dl_sched_class);
 #ifdef CONFIG_SMP
 	BUG_ON(&dl_sched_class + 1 != &stop_sched_class);

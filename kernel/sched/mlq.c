@@ -297,6 +297,6 @@ DEFINE_SCHED_CLASS(mlq) = {
 	.update_curr		= update_curr_mlq,
 
 #ifdef CONFIG_UCLAMP_TASK
-	.uclamp_enabled		= 1,
+	.uclamp_enabled		= 0,
 #endif
 };
