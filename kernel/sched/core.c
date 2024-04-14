@@ -2018,7 +2018,7 @@ static inline int __normal_prio(int policy, int rt_prio, int nice)
 		prio = MAX_DL_PRIO - 1;
 	else if (rt_policy(policy))
 		prio = MAX_RT_PRIO - 1 - rt_prio;
-	else if (mlq(policy))
+	else if (mlq_policy(policy))
 		prio = MAX_RT_PRIO - 1 + rt_prio;
 	else
 		prio = NICE_TO_PRIO(nice);

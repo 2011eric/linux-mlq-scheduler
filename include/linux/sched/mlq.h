@@ -5,7 +5,7 @@
 
 struct task_struct;
 
-static inline int rt_prio(int prio)
+static inline int mlq_prio(int prio)
 {
 	if (unlikely(prio >= MAX_RT_PRIO && prio < MAX_RT_PRIO + MLQ_WIDTH))
 		return 1;

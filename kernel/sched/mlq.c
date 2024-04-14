@@ -69,19 +69,6 @@ static void update_curr_mlq(struct rq *rq)
 /*
  * Adding/removing a task to/from a priority array:
  */
-static void
-enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
-{
-	struct sched_rt_entity *rt_se = &p->rt;
-
-	if (flags & ENQUEUE_WAKEUP)
-		rt_se->timeout = 0;
-
-	enqueue_rt_entity(rt_se, flags);
-
-	if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
-		enqueue_pushable_task(rq, p);
-}
 static void enqueue_mlq_entity(struct sched_mlq_entity *mlq_se)
 {
     struct list_head *queue = internal_queue_of_se(mlq_se);
@@ -149,8 +136,8 @@ static struct task_struct *pick_task_mlq(struct rq *rq)
 {
     struct sched_mlq_entity *mlq_se;
     struct task_struct *p;
-    
-    for (int i = 0;i < MLQ_WIDTH; i++)
+    int i;
+    for (i = 0;i < MLQ_WIDTH; i++)
     {
         mlq_se = pick_next_entity_mlq(&rq->mlq.queues[i]);
         if (mlq_se)
@@ -250,7 +237,8 @@ balance_mlq(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 }
 void init_mlq_rq(struct mlq_rq *mlq_rq)
 {
-    for (int i = 0; i < MLQ_WIDTH; i++)
+    int i;
+    for (i = 0; i < MLQ_WIDTH; i++)
         INIT_LIST_HEAD(&mlq_rq->queues[i]);
 }
 DEFINE_SCHED_CLASS(mlq) = {
@@ -275,7 +263,7 @@ DEFINE_SCHED_CLASS(mlq) = {
 	.task_woken		= task_woken_rt,
 	.switched_from		= switched_from_rt,
 	.find_lock_rq		= find_lock_lowest_rq,
-#endif
+#endif */
 
 	.task_tick		= task_tick_mlq,
 
