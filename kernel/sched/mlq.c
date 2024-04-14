@@ -238,6 +238,16 @@ static void switched_to_mlq(struct rq *rq, struct task_struct *p)
         resched_curr(rq);
 }
 
+static int
+balance_mlq(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+{
+    for (int i = 0; i < MLQ_WIDTH; i++){
+        if (!list_empty(&rq->mlq.queues[i]))
+            return 1;
+    }
+    //TODO: try to do some balancing
+    return 0;
+}
 void init_mlq_rq(struct mlq_rq *mlq_rq)
 {
     for (int i = 0; i < MLQ_WIDTH; i++)
@@ -256,8 +266,8 @@ DEFINE_SCHED_CLASS(mlq) = {
 	.set_next_task          = set_next_task_mlq,
 
 #ifdef CONFIG_SMP
-	.balance		= balance_rt,
-	.pick_task		= pick_task_rt,
+	.balance		= balance_mlq,
+	.pick_task		= pick_task_mlq,
 	.select_task_rq		= select_task_rq_rt,
 	.set_cpus_allowed       = set_cpus_allowed_common,
 	.rq_online              = rq_online_rt,
