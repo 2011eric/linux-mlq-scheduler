@@ -261,6 +261,12 @@ static void rq_offline_mlq(struct rq *rq)
 	cpupri_set(&rq->rd->cpupri, rq->cpu, CPUPRI_INVALID);
 }
 
+
+static void switched_from_rt(struct rq *rq, struct task_struct *p)
+{
+    return;
+}
+
 DEFINE_SCHED_CLASS(mlq) = {
 
 	.enqueue_task		= enqueue_task_mlq,
@@ -280,9 +286,7 @@ DEFINE_SCHED_CLASS(mlq) = {
 	.set_cpus_allowed       = set_cpus_allowed_common,
 	.rq_online              = rq_online_mlq,
 	.rq_offline             = rq_offline_mlq,
-	.task_woken		= task_woken_rt,
 	.switched_from		= switched_from_rt,
-	.find_lock_rq		= find_lock_lowest_rq,
 #endif */
 
 	.task_tick		= task_tick_mlq,
