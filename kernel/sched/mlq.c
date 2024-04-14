@@ -76,6 +76,7 @@ static void enqueue_mlq_entity(struct sched_mlq_entity *mlq_se)
         list_del_init(&mlq_se->run_list);
     list_add_tail(&mlq_se->run_list, queue);
     mlq_se->on_rq = 1;
+    add_nr_running(rq_of_mlq_se(mlq_se), 1);
 }
 
 static inline void dequeue_mlq_entity(struct sched_mlq_entity *mlq_se)
@@ -83,6 +84,7 @@ static inline void dequeue_mlq_entity(struct sched_mlq_entity *mlq_se)
     if (!list_empty(&mlq_se->run_list))
         list_del_init(&mlq_se->run_list);
     mlq_se->on_rq = 0;
+    sub_nr_running(rq_of_mlq_se(mlq_se), 1);
 }
 
 static void requeue_mlq_entity(struct sched_mlq_entity *mlq_se)
