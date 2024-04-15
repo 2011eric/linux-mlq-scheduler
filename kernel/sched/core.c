@@ -2035,7 +2035,8 @@ static inline int __normal_prio(int policy, int rt_prio, int mlq_prio, int nice)
  */
 static inline int normal_prio(struct task_struct *p)
 {
-	return __normal_prio(p->policy, p->rt_priority, p->mlq_priority, PRIO_TO_NICE(p->static_prio));
+	return __normal_prio(p->policy, p->rt_priority, p->mlq_priority,
+				PRIO_TO_NICE(p->static_prio));
 }
 
 /*
@@ -7423,7 +7424,8 @@ change:
 	p->sched_reset_on_fork = reset_on_fork;
 	oldprio = p->prio;
 
-	newprio = __normal_prio(policy, attr->sched_priority, attr->sched_priority, attr->sched_nice);
+	newprio = __normal_prio(policy, attr->sched_priority, attr->sched_priority,
+						attr->sched_nice);
 	if (pi) {
 		/*
 		 * Take priority boosted tasks into account. If the new
