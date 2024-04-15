@@ -49,7 +49,6 @@ void __setparam_mlq(struct task_struct *p, const struct sched_attr *attr)
 static void update_curr_mlq(struct rq *rq)
 {
 	struct task_struct *curr = rq->curr;
-	struct sched_mlq_entity *mlq_se = &curr->mlq;
 	u64 delta_exec;
 	u64 now;
 
