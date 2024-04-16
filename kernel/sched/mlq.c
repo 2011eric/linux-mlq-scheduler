@@ -173,8 +173,17 @@ static void check_preempt_curr_mlq(struct rq *rq, struct task_struct *p,
 static void task_tick_mlq(struct rq *rq, struct task_struct *p, int queued)
 {
 	struct sched_mlq_entity *mlq_se = &p->mlq;
+	int i;
 
 	update_curr_mlq(rq);
+
+	/* Check if there is task with higher priority */
+	for (i = 0; i < p->mlq_priority - 1; i++) {
+		if (!list_empty(&rq->mlq.queues[i])) {
+			resched_curr(rq);
+			break;
+		}
+	}
 
 	if (p->mlq_priority == 3)
 		return;
@@ -188,7 +197,8 @@ static void task_tick_mlq(struct rq *rq, struct task_struct *p, int queued)
 	else
 		mlq_se->time_slice = MLQ_SECOND_TIMESLICE;
 
-	if (mlq_se->run_list.next != internal_queue_of_se(mlq_se)) {
+	/* If we are not the only one in the runqueue */
+	if (mlq_se->run_list.next != mlq_se->run_list.prev) {
 		requeue_mlq_entity(mlq_se);
 		resched_curr(rq);
 	}
