@@ -242,8 +242,30 @@ static int balance_mlq(struct rq *rq, struct task_struct *prev,
 
 static int select_task_rq_mlq(struct task_struct *p, int cpu, int flags)
 {
-	//TODO: implement this
+
+#ifdef MLQ_LOAD_BALANCE
+	int i;
+	unsigned long min_load = ULONG_MAX, load;
+	int best_cpu = -1;
+
+	if (p->nr_cpus_allowed == 1)
+		return cpu;
+
+	rcu_read_lock();
+	for_each_cpu(i, p->cpus_ptr) {
+		struct rq *rq = cpu_rq(i);
+
+		load = rq->cfs.avg.load_avg;
+		if (load < min_load) {
+			min_load = load;
+			best_cpu = i;
+		}
+	}
+	rcu_read_unlock();
+	return i;
+#else
 	return cpu;
+#endif
 }
 void init_mlq_rq(struct mlq_rq *mlq_rq)
 {
